@@ -6,10 +6,41 @@ Cérebro central que coordena todas as skills e processa comandos
 import os
 import re
 import importlib
-from typing import Dict, Any, Optional
+import yaml
+from typing import Dict, Any, Optional, List
+from pathlib import Path
 from skills.logs import setup_logger
 
 logger = setup_logger(__name__, "./logs/prometheus.log")
+
+# Try to import new skills interfaces
+try:
+    from skills.memory_system import PrometheusMemoryInterface
+    MEMORY_AVAILABLE = True
+except ImportError as e:
+    MEMORY_AVAILABLE = False
+    logger.warning(f"Memory System não disponível: {e}")
+
+try:
+    from skills.vision_control import PrometheusVisionInterface
+    VISION_AVAILABLE = True
+except ImportError as e:
+    VISION_AVAILABLE = False
+    logger.warning(f"Vision Control não disponível: {e}")
+
+try:
+    from skills.browser_control import PrometheusBrowserInterface
+    BROWSER_AVAILABLE = True
+except ImportError as e:
+    BROWSER_AVAILABLE = False
+    logger.warning(f"Browser Control não disponível: {e}")
+
+try:
+    from skills.ai_master_router import PrometheusAIInterface
+    AI_MASTER_AVAILABLE = True
+except ImportError as e:
+    AI_MASTER_AVAILABLE = False
+    logger.warning(f"AI Master Router não disponível: {e}")
 
 
 class PrometheusCore:
@@ -21,6 +52,44 @@ class PrometheusCore:
         """Inicializa o cérebro do Prometheus"""
         self.skills = {}
         self.running = False
+        self.config = self._load_config()
+
+        # Initialize memory interface
+        self.memory = None
+        if MEMORY_AVAILABLE:
+            try:
+                self.memory = PrometheusMemoryInterface()
+                logger.info("Memory System interface inicializada")
+            except Exception as e:
+                logger.error(f"Erro ao inicializar Memory System: {e}")
+
+        # Initialize vision interface
+        self.vision = None
+        if VISION_AVAILABLE:
+            try:
+                self.vision = PrometheusVisionInterface()
+                logger.info("Vision Control interface inicializada")
+            except Exception as e:
+                logger.error(f"Erro ao inicializar Vision Control: {e}")
+
+        # Initialize browser interface
+        self.browser = None
+        if BROWSER_AVAILABLE:
+            try:
+                self.browser = PrometheusBrowserInterface()
+                logger.info("Browser Control interface inicializada")
+            except Exception as e:
+                logger.error(f"Erro ao inicializar Browser Control: {e}")
+
+        # Initialize AI Master Router
+        self.ai_master = None
+        if AI_MASTER_AVAILABLE:
+            try:
+                self.ai_master = PrometheusAIInterface()
+                logger.info("AI Master Router interface inicializada")
+            except Exception as e:
+                logger.error(f"Erro ao inicializar AI Master Router: {e}")
+
         logger.info("PrometheusCore inicializado")
 
     def start(self):
@@ -57,7 +126,9 @@ class PrometheusCore:
                 "ai_router",
                 "vision_control",
                 "always_on_voice",
-                "memory_system"
+                "memory_system",
+                "browser_control",
+                "ai_master_router"
             ]
 
             for skill_name in skills_to_load:
@@ -87,6 +158,11 @@ class PrometheusCore:
             logger.info(f"Processando comando: {command}")
 
             command_lower = command.lower().strip()
+
+            # Buscar contexto na memória (se disponível)
+            memory_context = self._get_memory_context(command)
+            if memory_context:
+                logger.info(f"Contexto da memória: {len(memory_context)} memórias relevantes encontradas")
 
             # Detectar intenção e rotear para skill apropriada
 
@@ -188,21 +264,13 @@ class PrometheusCore:
                         "body": command
                     })
 
-            # AI Router
-            elif any(word in command_lower for word in ["perguntar", "ai", "ia", "claude", "gpt"]):
-                task_type = self._detect_task_type(command)
-                return self.route_to_skill("ai_router", {
-                    "action": "route",
-                    "prompt": command,
-                    "task_type": task_type
-                })
+            # AI Master Router (novo sistema inteligente)
+            elif any(word in command_lower for word in ["perguntar", "ai", "ia", "claude", "gpt", "gemini", "questao", "duvida"]):
+                return self._handle_ai_command(command)
 
             # Vision Control
             elif any(word in command_lower for word in ["clicar", "click", "digitar", "type", "screenshot", "tela", "screen", "encontrar", "find", "botao", "button"]):
-                return self.route_to_skill("vision_control", {
-                    "action": "process_command",
-                    "command": command
-                })
+                return self._handle_vision_command(command)
 
             # Always-On Voice
             elif any(word in command_lower for word in ["voz", "voice", "escutar", "listen", "transcricao", "transcription", "reuniao", "meeting"]):
@@ -212,11 +280,21 @@ class PrometheusCore:
                 })
 
             # Memory System
-            elif any(word in command_lower for word in ["lembrar", "remember", "memoria", "memory", "aprender", "learn", "relembrar", "recall", "padroes", "patterns"]):
-                return self.route_to_skill("memory_system", {
-                    "action": "process_command",
-                    "command": command
-                })
+            elif any(word in command_lower for word in ["lembrar", "remember", "memoria", "memory", "aprender", "learn", "relembrar", "recall", "padroes", "patterns", "esquecer", "forget"]):
+                result = self._handle_memory_command(command)
+
+                # Save command/response pair to memory (if memory is available)
+                if self.memory and result.get("success"):
+                    try:
+                        self.memory.process_command(f"lembrar comando '{command}' resultou em '{result}'")
+                    except:
+                        pass
+
+                return result
+
+            # Browser Control
+            elif any(word in command_lower for word in ["abrir", "navegar", "acessar", "site", "pesquisar google", "buscar google", "browser", "navegador", "web"]):
+                return self._handle_browser_command(command)
 
             # Status e testes
             elif command_lower in ["status", "test", "teste"]:
@@ -370,6 +448,137 @@ class PrometheusCore:
             "success": True,
             "tests": results
         }
+
+    def _load_config(self) -> Dict[str, Any]:
+        """Carrega configuração do arquivo config.yaml"""
+        config_path = Path("config/config.yaml")
+
+        if not config_path.exists():
+            logger.warning(f"Arquivo de config não encontrado: {config_path}")
+            return {}
+
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+                logger.info("Configuração carregada de config.yaml")
+                return config or {}
+        except Exception as e:
+            logger.error(f"Erro ao carregar config: {e}")
+            return {}
+
+    def _get_memory_context(self, command: str, limit: int = 3) -> List[Dict]:
+        """
+        Busca contexto relevante na memória para o comando
+
+        Args:
+            command: Comando atual
+            limit: Número máximo de memórias a retornar
+
+        Returns:
+            Lista de memórias relevantes
+        """
+        if not self.memory:
+            return []
+
+        try:
+            result = self.memory.process_command(f"relembrar sobre {command}")
+            if result.get("success") and result.get("memories"):
+                return result["memories"][:limit]
+        except Exception as e:
+            logger.error(f"Erro ao buscar contexto na memória: {e}")
+
+        return []
+
+    def _handle_memory_command(self, command: str) -> Dict[str, Any]:
+        """
+        Processa comandos relacionados à memória
+
+        Args:
+            command: Comando em linguagem natural
+
+        Returns:
+            Resultado da operação
+        """
+        if not self.memory:
+            return {"success": False, "error": "Memory System não disponível"}
+
+        try:
+            return self.memory.process_command(command)
+        except Exception as e:
+            logger.error(f"Erro ao processar comando de memória: {e}")
+            return {"success": False, "error": str(e)}
+
+    def _handle_vision_command(self, command: str) -> Dict[str, Any]:
+        """
+        Processa comandos relacionados à visão/tela
+
+        Args:
+            command: Comando em linguagem natural
+
+        Returns:
+            Resultado da operação
+        """
+        if not self.vision:
+            return {"success": False, "error": "Vision Control não disponível"}
+
+        try:
+            return self.vision.process_command(command)
+        except Exception as e:
+            logger.error(f"Erro ao processar comando de visão: {e}")
+            return {"success": False, "error": str(e)}
+
+    def _handle_browser_command(self, command: str) -> Dict[str, Any]:
+        """
+        Processa comandos relacionados ao navegador
+
+        Args:
+            command: Comando em linguagem natural
+
+        Returns:
+            Resultado da operação
+        """
+        if not self.browser:
+            return {"success": False, "error": "Browser Control não disponível"}
+
+        try:
+            return self.browser.process_command(command)
+        except Exception as e:
+            logger.error(f"Erro ao processar comando de navegador: {e}")
+            return {"success": False, "error": str(e)}
+
+    def _handle_ai_command(self, command: str) -> Dict[str, Any]:
+        """
+        Processa comandos de IA usando AI Master Router
+
+        Args:
+            command: Comando/pergunta em linguagem natural
+
+        Returns:
+            Resposta da IA
+        """
+        if not self.ai_master:
+            return {"success": False, "error": "AI Master Router não disponível"}
+
+        try:
+            # Usar memória para contexto (se disponível)
+            context = self._get_memory_context(command, limit=2)
+
+            # Processar com AI Master Router
+            result = self.ai_master.process_command(command)
+
+            # Salvar na memória (se disponível e sucesso)
+            if self.memory and result.get("success"):
+                try:
+                    response_text = result.get("response", "")[:200]  # Primeiros 200 chars
+                    self.memory.process_command(f"lembrar pergunta '{command}' = resposta '{response_text}'")
+                except:
+                    pass
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Erro ao processar comando de IA: {e}")
+            return {"success": False, "error": str(e)}
 
     # Funções auxiliares para extrair informações de comandos
 

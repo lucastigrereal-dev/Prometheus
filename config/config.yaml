@@ -1,0 +1,127 @@
+# Prometheus Configuration File
+# Sistema de Automação Inteligente - MODO ABSOLUTO
+
+prometheus:
+  name: "Prometheus MODO ABSOLUTO"
+  version: "2.0"
+  mode: "production"  # production, development, debug
+
+  # Logging
+  logging:
+    level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+    file: "./logs/prometheus.log"
+    max_size_mb: 10
+    backup_count: 5
+
+  # Memory System
+  memory:
+    enabled: true
+    database_path: "./memory/prometheus_memory.db"
+    max_memories: 10000
+    embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+    similarity_threshold: 0.7
+
+  # Vision Control
+  vision:
+    enabled: true
+    tesseract_path: "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+    screenshot_dir: "./screenshots"
+    ocr_language: "por+eng"
+    gpt4_vision_enabled: false  # Requer API key
+
+  # Browser Control
+  browser:
+    enabled: true
+    browser_type: "chromium"  # chromium, firefox, webkit
+    headless: false
+    timeout: 30000  # milliseconds
+    download_dir: "./downloads"
+
+  # Voice System
+  voice:
+    enabled: true
+    wake_words: ["prometheus", "jarvis", "assistente"]
+    mode: "passive"  # passive, active, continuous
+    language: "pt-BR"
+    database_path: "./memory/voice_transcriptions.db"
+
+# Skills Configuration
+skills:
+  system_control:
+    enabled: true
+
+  n8n_client:
+    enabled: true
+    url: "http://localhost:5678"
+
+  whatsapp_api:
+    enabled: true
+
+  rdstation_client:
+    enabled: true
+
+  supabase_sync:
+    enabled: false  # Requires supabase library
+
+  google_services:
+    enabled: true
+    credentials_path: "./credentials/google_credentials.json"
+
+  ai_router:
+    enabled: true
+    default_model: "claude"  # claude, gpt, gemini
+
+  vision_control:
+    enabled: true
+
+  always_on_voice:
+    enabled: true
+
+  memory_system:
+    enabled: true
+
+  browser_control:
+    enabled: true
+
+# AI Models Configuration
+ai_models:
+  claude:
+    model: "claude-3-5-sonnet-20241022"
+    max_tokens: 4096
+    temperature: 0.7
+
+  openai:
+    model: "gpt-4-turbo-preview"
+    max_tokens: 4096
+    temperature: 0.7
+
+  gemini:
+    model: "gemini-1.5-pro"
+    max_tokens: 4096
+    temperature: 0.7
+
+# External Services
+services:
+  n8n:
+    url: "http://localhost:5678"
+    webhook_path: "/webhook/prometheus"
+
+  whatsapp:
+    api_url: "${WHATSAPP_API_URL}"
+
+  rdstation:
+    base_url: "https://api.rd.services"
+
+  supabase:
+    url: "${SUPABASE_URL}"
+
+# Security
+security:
+  max_command_length: 1000
+  allowed_directories:
+    - "C:\\Users\\lucas"
+    - "C:\\Temp"
+  blocked_commands:
+    - "format"
+    - "del /f /s /q C:\\"
+    - "rm -rf /"

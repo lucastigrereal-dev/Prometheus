@@ -49,3 +49,25 @@ configs/secrets.json
 *.zip
 prometheus_setup/
 claude_code_package/
+
+# Memory databases
+memory/*.db
+memory/*.db-journal
+
+# Screenshots and downloads
+screenshots/
+downloads/
+
+# Voice recordings
+voice_recordings/
+
+# Credentials
+credentials/*.json
+!credentials/README.md
+
+# Config overrides
+config/.env
+
+# Browser profiles
+browser_data/
+.playwright/
