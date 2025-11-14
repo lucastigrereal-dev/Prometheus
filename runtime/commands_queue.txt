@@ -1,0 +1,6 @@
+# Prometheus Command Queue
+# Este arquivo é usado para enfileirar comandos de voz
+# Formato: um comando por linha
+# Linhas começando com # são ignoradas
+# O sistema processa e limpa este arquivo automaticamente
+

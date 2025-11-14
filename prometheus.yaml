@@ -1,0 +1,65 @@
+# Prometheus Configuration File
+# Configurações do sistema Prometheus
+
+version: "1.0.0"
+
+# Configurações de voz
+voice:
+  enabled: true
+  language: "pt-BR"
+  energy_threshold: 300
+  pause_threshold: 0.8
+  phrase_time_limit: 5
+  wake_word: "prometheus"
+
+# Logging
+logging:
+  level: "INFO"
+  file: "./logs/prometheus.log"
+  max_size_mb: 10
+  backup_count: 5
+
+# Skills configuration
+skills:
+  system_control:
+    enabled: true
+    default_downloads_path: null  # null = user's Downloads folder
+
+  n8n_client:
+    enabled: true
+    base_url: "http://localhost:5678"
+
+  whatsapp_api:
+    enabled: true
+    api_version: "v18.0"
+
+  rdstation_client:
+    enabled: true
+
+  supabase_sync:
+    enabled: true
+
+  google_services:
+    enabled: false  # TODO: Implement OAuth2
+
+  ai_router:
+    enabled: true
+    default_model: "claude-3-5-sonnet-20241022"
+
+# Runtime
+runtime:
+  queue_file: "./runtime/commands_queue.txt"
+  queue_check_interval: 2  # seconds
+  max_command_length: 500
+
+# Security
+security:
+  require_confirmation_for:
+    - "delete"
+    - "remove"
+    - "format"
+    - "shutdown"
+  blocked_commands:
+    - "rm -rf /"
+    - "format c:"
+    - "del /f /s /q c:\\"
