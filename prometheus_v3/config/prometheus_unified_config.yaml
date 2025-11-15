@@ -1,0 +1,312 @@
+# ============================================================================
+# PROMETHEUS V3 - UNIFIED CONFIGURATION
+# One config to rule them all
+# ============================================================================
+
+system:
+  name: "PROMETHEUS"
+  version: "3.0"
+  environment: "development"  # development | staging | production
+  mode: "hybrid_v1_v2"       # hybrid_v1_v2 | v2_only | v1_only
+  debug: true
+  
+# ============================================================================
+# AI PROVIDERS
+# ============================================================================
+
+providers:
+  claude:
+    enabled: true
+    api_key: "${CLAUDE_API_KEY}"
+    model: "claude-3-opus-20240229"
+    max_tokens: 4096
+    temperature: 0.7
+    rate_limit: 100  # requests per minute
+    timeout: 30
+    
+  gpt4:
+    enabled: true
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-4-turbo-preview"
+    max_tokens: 4096
+    temperature: 0.7
+    rate_limit: 60
+    timeout: 30
+    aurora_mode: true  # Enable Aurora arbiter mode
+    
+  gemini:
+    enabled: false
+    api_key: "${GEMINI_API_KEY}"
+    model: "gemini-pro"
+    max_tokens: 4096
+    temperature: 0.7
+    rate_limit: 60
+    timeout: 30
+    
+  perplexity:
+    enabled: false
+    api_key: "${PERPLEXITY_API_KEY}"
+    model: "pplx-70b-online"
+    max_tokens: 4096
+    temperature: 0.5
+    rate_limit: 50
+    timeout: 30
+    
+# ============================================================================
+# MODULES CONFIGURATION
+# ============================================================================
+
+modules:
+  v1:
+    browser_control:
+      enabled: true
+      path: "prometheus_browser_control.py"
+      
+    voice_control:
+      enabled: true
+      path: "prometheus_always_on_voice.py"
+      wake_word: "prometheus"
+      
+    vision_control:
+      enabled: true
+      path: "prometheus_vision_control.py"
+      
+    memory_system:
+      enabled: true
+      path: "prometheus_memory_system.py"
+      
+  v2:
+    core:
+      enabled: true
+      path: "prometheus_v2/core/prometheus_core.py"
+      
+    task_analyzer:
+      enabled: true
+      path: "prometheus_v2/core/task_analyzer.py"
+      nlp_model: "pt_core_news_sm"
+      
+    consensus_engine:
+      enabled: true
+      path: "prometheus_v2/core/consensus_engine.py"
+      min_votes: 2
+      max_votes: 5
+      confidence_threshold: 0.6
+      
+    browser_controller:
+      enabled: true
+      path: "prometheus_v2/execution/browser_controller.py"
+      browser: "chromium"
+      headless: false
+      stealth_mode: true
+      
+    memory_manager:
+      enabled: true
+      path: "prometheus_v2/memory/memory_manager.py"
+      embedding_provider: "openai"
+      max_short_term: 1000
+      max_long_term: 10000
+      
+# ============================================================================
+# INTEGRATIONS
+# ============================================================================
+
+integrations:
+  whatsapp:
+    enabled: true
+    api_url: "${WHATSAPP_API_URL}"
+    token: "${WHATSAPP_TOKEN}"
+    
+  rd_station:
+    enabled: true
+    client_id: "${RD_STATION_CLIENT_ID}"
+    client_secret: "${RD_STATION_CLIENT_SECRET}"
+    refresh_token: "${RD_STATION_REFRESH_TOKEN}"
+    
+  n8n:
+    enabled: true
+    url: "http://localhost:5678"
+    api_key: "${N8N_API_KEY}"
+    
+  supabase:
+    enabled: true
+    url: "${SUPABASE_URL}"
+    anon_key: "${SUPABASE_ANON_KEY}"
+    service_key: "${SUPABASE_SERVICE_KEY}"
+    
+  google:
+    enabled: true
+    credentials_path: "credentials/google_service_account.json"
+    
+  redis:
+    enabled: true
+    host: "localhost"
+    port: 6379
+    db: 0
+    password: "${REDIS_PASSWORD}"
+    
+# ============================================================================
+# RUNTIME CONFIGURATION
+# ============================================================================
+
+runtime:
+  max_parallel_tasks: 5
+  task_timeout: 3600  # seconds
+  retry_policy:
+    max_attempts: 3
+    backoff: "exponential"  # linear | exponential | fixed
+    initial_delay: 1
+    max_delay: 60
+    
+  resource_limits:
+    max_memory: "4GB"
+    max_cpu_percent: 80
+    max_disk_usage: "10GB"
+    
+# ============================================================================
+# LOGGING
+# ============================================================================
+
+logging:
+  level: "INFO"  # DEBUG | INFO | WARNING | ERROR | CRITICAL
+  format: "[%(asctime)s] [%(levelname)s] [%(name)s] [%(correlation_id)s] → %(message)s"
+  
+  handlers:
+    console:
+      enabled: true
+      level: "INFO"
+      
+    file:
+      enabled: true
+      level: "DEBUG"
+      path: "logs/prometheus.log"
+      max_size: "100MB"
+      backup_count: 5
+      
+    remote:
+      enabled: false
+      endpoint: "https://logs.example.com/prometheus"
+      api_key: "${LOGGING_API_KEY}"
+      
+# ============================================================================
+# SCHEDULER
+# ============================================================================
+
+scheduler:
+  enabled: true
+  timezone: "America/Sao_Paulo"
+  
+  jobs:
+    backup_daily:
+      enabled: true
+      schedule: "0 3 * * *"  # 3 AM every day
+      task: "backup_all_data"
+      
+    cleanup_logs:
+      enabled: true
+      schedule: "0 0 * * 0"  # Sunday midnight
+      task: "cleanup_old_logs"
+      max_age_days: 30
+      
+    health_check:
+      enabled: true
+      schedule: "*/30 * * * *"  # Every 30 minutes
+      task: "health_check_all"
+      
+    memory_consolidation:
+      enabled: true
+      schedule: "0 4 * * *"  # 4 AM every day
+      task: "consolidate_memories"
+      
+    report_generation:
+      enabled: true
+      schedule: "0 9 * * 1"  # Monday 9 AM
+      task: "generate_weekly_report"
+      
+# ============================================================================
+# SECURITY
+# ============================================================================
+
+security:
+  encryption:
+    enabled: true
+    algorithm: "AES-256-GCM"
+    key_path: "secrets/encryption.key"
+    
+  authentication:
+    enabled: false
+    method: "jwt"  # jwt | oauth | api_key
+    
+  authorization:
+    enabled: false
+    rbac: true  # Role-based access control
+    
+  audit:
+    enabled: true
+    log_all_actions: true
+    sensitive_data_masking: true
+    
+# ============================================================================
+# UI CONFIGURATION
+# ============================================================================
+
+ui:
+  dashboard:
+    enabled: true
+    host: "0.0.0.0"
+    port: 8000
+    auto_refresh: 1000  # milliseconds
+    theme: "dark"  # dark | light | auto
+    
+  notifications:
+    enabled: true
+    channels:
+      - "dashboard"
+      - "whatsapp"
+      - "email"
+      
+# ============================================================================
+# PERFORMANCE
+# ============================================================================
+
+performance:
+  cache:
+    enabled: true
+    ttl: 3600  # seconds
+    max_size: "1GB"
+    
+  optimization:
+    lazy_loading: true
+    batch_processing: true
+    async_execution: true
+    
+  monitoring:
+    enabled: true
+    metrics_port: 9090
+    collect_interval: 10  # seconds
+    
+# ============================================================================
+# BACKUP & RECOVERY
+# ============================================================================
+
+backup:
+  enabled: true
+  path: "backups/"
+  
+  schedule:
+    full: "0 2 * * 0"  # Sunday 2 AM
+    incremental: "0 2 * * 1-6"  # Mon-Sat 2 AM
+    
+  retention:
+    daily: 7
+    weekly: 4
+    monthly: 3
+    
+  destinations:
+    - type: "local"
+      path: "backups/"
+    - type: "s3"
+      bucket: "prometheus-backups"
+      enabled: false
+    - type: "google_drive"
+      folder_id: "1234567890"
+      enabled: false

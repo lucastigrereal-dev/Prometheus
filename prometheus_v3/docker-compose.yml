@@ -1,0 +1,275 @@
+# ============================================================================
+# PROMETHEUS V3 - DOCKER COMPOSE
+# Complete stack with all services
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Core Application
+  # ============================================================================
+  
+  prometheus-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prometheus-v3:latest
+    container_name: prometheus-core
+    restart: unless-stopped
+    ports:
+      - "8000:8000"  # Dashboard
+      - "9090:9090"  # Metrics
+    environment:
+      # System
+      - PROMETHEUS_ENV=production
+      - LOG_LEVEL=INFO
+      
+      # AI Providers (use .env file)
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+      
+      # Integrations
+      - WHATSAPP_API_URL=${WHATSAPP_API_URL}
+      - WHATSAPP_TOKEN=${WHATSAPP_TOKEN}
+      - RD_STATION_CLIENT_ID=${RD_STATION_CLIENT_ID}
+      - RD_STATION_CLIENT_SECRET=${RD_STATION_CLIENT_SECRET}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      
+      # PostgreSQL
+      - DATABASE_URL=postgresql://prometheus:prometheus@postgres:5432/prometheus
+      
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+      - ./playbooks:/app/playbooks
+      - ./config:/app/config
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - prometheus-network
+    command: ["python", "main.py", "--mode", "production"]
+    
+  # ============================================================================
+  # Redis Cache
+  # ============================================================================
+  
+  redis:
+    image: redis:7-alpine
+    container_name: prometheus-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - prometheus-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      
+  # ============================================================================
+  # PostgreSQL Database
+  # ============================================================================
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: prometheus-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=prometheus
+      - POSTGRES_USER=prometheus
+      - POSTGRES_PASSWORD=prometheus
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - prometheus-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prometheus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  # ============================================================================
+  # ChromaDB Vector Database
+  # ============================================================================
+  
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: prometheus-chromadb
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - CHROMA_SERVER_AUTH_PROVIDER=chromadb.auth.token.TokenAuthServerProvider
+      - CHROMA_SERVER_AUTH_CREDENTIALS=${CHROMA_AUTH_TOKEN:-test-token}
+    networks:
+      - prometheus-network
+      
+  # ============================================================================
+  # N8N Workflow Automation
+  # ============================================================================
+  
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: prometheus-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=prometheus
+      - N8N_BASIC_AUTH_PASSWORD=prometheus
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://n8n:5678/
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+    volumes:
+      - n8n-data:/home/node/.n8n
+    networks:
+      - prometheus-network
+      
+  # ============================================================================
+  # Grafana Monitoring
+  # ============================================================================
+  
+  grafana:
+    image: grafana/grafana:latest
+    container_name: prometheus-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=prometheus
+      - GF_INSTALL_PLUGINS=redis-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - prometheus-network
+    depends_on:
+      - prometheus-metrics
+      
+  # ============================================================================
+  # Prometheus Metrics (not to be confused with our app)
+  # ============================================================================
+  
+  prometheus-metrics:
+    image: prom/prometheus:latest
+    container_name: prometheus-metrics
+    restart: unless-stopped
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-metrics-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - prometheus-network
+      
+  # ============================================================================
+  # Nginx Reverse Proxy
+  # ============================================================================
+  
+  nginx:
+    image: nginx:alpine
+    container_name: prometheus-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - prometheus-core
+    networks:
+      - prometheus-network
+      
+  # ============================================================================
+  # Backup Service
+  # ============================================================================
+  
+  backup:
+    image: alpine:latest
+    container_name: prometheus-backup
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+      - ./backups:/backups
+      - postgres-data:/postgres-data:ro
+      - redis-data:/redis-data:ro
+    environment:
+      - BACKUP_INTERVAL=86400  # Daily
+    command: |
+      sh -c "
+      apk add --no-cache tar gzip postgresql-client redis
+      while true; do
+        echo 'Starting backup...'
+        tar -czf /backups/data-$$(date +%Y%m%d-%H%M%S).tar.gz /data
+        pg_dump -h postgres -U prometheus prometheus > /backups/postgres-$$(date +%Y%m%d-%H%M%S).sql
+        redis-cli -h redis --rdb /backups/redis-$$(date +%Y%m%d-%H%M%S).rdb
+        echo 'Backup completed'
+        sleep $$BACKUP_INTERVAL
+      done
+      "
+    networks:
+      - prometheus-network
+    depends_on:
+      - postgres
+      - redis
+
+# ============================================================================
+# Networks
+# ============================================================================
+
+networks:
+  prometheus-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# ============================================================================
+# Volumes
+# ============================================================================
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  chroma-data:
+    driver: local
+  n8n-data:
+    driver: local
+  grafana-data:
+    driver: local
+  prometheus-metrics-data:
+    driver: local

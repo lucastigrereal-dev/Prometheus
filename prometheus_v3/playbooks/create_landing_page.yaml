@@ -1,0 +1,415 @@
+# PLAYBOOK: Create Landing Page
+# Automação completa para criação de landing page com SEO otimizado
+
+name: "Create Landing Page"
+description: "Cria landing page completa com SEO, responsiva e otimizada para conversão"
+version: "1.0"
+author: "Prometheus V3"
+created_at: "2024-11-15"
+category: "web_development"
+tags:
+  - landing_page
+  - seo
+  - web_design
+  - automation
+
+# ============================================================================
+# VARIABLES (Required inputs)
+# ============================================================================
+
+variables:
+  client_name:
+    type: string
+    required: true
+    description: "Nome do cliente"
+    example: "ABC Corp"
+    
+  business_type:
+    type: string
+    required: true
+    description: "Tipo de negócio"
+    example: "Consultoria Digital"
+    
+  main_color:
+    type: string
+    required: false
+    default: "#007bff"
+    description: "Cor principal da marca"
+    
+  target_audience:
+    type: string
+    required: true
+    description: "Público-alvo"
+    example: "Empresários e gestores de PMEs"
+    
+  main_cta:
+    type: string
+    required: false
+    default: "Solicite um Orçamento"
+    description: "Call-to-action principal"
+    
+  contact_email:
+    type: string
+    required: true
+    description: "Email de contato"
+    example: "contato@empresa.com"
+    
+  contact_phone:
+    type: string
+    required: false
+    description: "Telefone de contato"
+    example: "(11) 99999-9999"
+
+# ============================================================================
+# EXECUTION STEPS
+# ============================================================================
+
+steps:
+  # Step 1: Pesquisa de mercado e concorrentes
+  - name: "Market Research"
+    id: "research"
+    type: "web_search"
+    description: "Pesquisa concorrentes e melhores práticas"
+    parameters:
+      queries:
+        - "{business_type} landing pages exemplos 2024"
+        - "{business_type} melhores práticas conversão"
+        - "landing page {target_audience}"
+      max_results: 10
+      save_to: "research_results.json"
+    outputs:
+      - competitor_insights
+      - best_practices
+      - design_trends
+    
+  # Step 2: Análise de palavras-chave para SEO
+  - name: "SEO Keyword Analysis"
+    id: "seo_analysis"
+    type: "seo_research"
+    description: "Identifica palavras-chave relevantes"
+    parameters:
+      business: "{business_type}"
+      location: "Brasil"
+      competitors: "{research.competitor_insights}"
+    outputs:
+      - primary_keywords
+      - long_tail_keywords
+      - search_volume
+    
+  # Step 3: Geração de copy otimizada
+  - name: "Generate Copy"
+    id: "copy_generation"
+    type: "ai_generation"
+    provider: "claude"
+    description: "Cria copy persuasiva e otimizada para SEO"
+    prompt: |
+      Crie o copy completo para uma landing page de {client_name}, 
+      uma empresa de {business_type}.
+      
+      Público-alvo: {target_audience}
+      
+      Palavras-chave principais: {seo_analysis.primary_keywords}
+      
+      Estrutura necessária:
+      1. Headline impactante
+      2. Subheadline explicativo
+      3. Proposta de valor clara
+      4. 3 benefícios principais
+      5. Prova social (espaço para depoimentos)
+      6. CTA principal: {main_cta}
+      7. Seção "Como funciona" (3 passos)
+      8. FAQ (5 perguntas comuns)
+      9. CTA final
+      
+      Tom: Profissional mas acessível
+      Foco: Conversão e confiança
+    outputs:
+      - headline
+      - subheadline
+      - value_proposition
+      - benefits
+      - how_it_works
+      - faq
+      - cta_texts
+    
+  # Step 4: Design e estrutura HTML
+  - name: "Create HTML Structure"
+    id: "html_creation"
+    type: "code_generation"
+    language: "html"
+    description: "Gera estrutura HTML responsiva"
+    template: "landing_page_modern"
+    parameters:
+      copy: "{copy_generation}"
+      color_scheme:
+        primary: "{main_color}"
+        secondary: "#6c757d"
+        success: "#28a745"
+        danger: "#dc3545"
+      sections:
+        - hero
+        - benefits
+        - how_it_works
+        - testimonials
+        - faq
+        - contact
+    outputs:
+      - html_file
+      - css_file
+      - structure_map
+    
+  # Step 5: Otimização de performance
+  - name: "Optimize Performance"
+    id: "optimization"
+    type: "optimization"
+    description: "Otimiza código e assets"
+    parameters:
+      html: "{html_creation.html_file}"
+      css: "{html_creation.css_file}"
+      optimizations:
+        - minify_html
+        - minify_css
+        - inline_critical_css
+        - lazy_loading
+        - compress_images
+        - add_meta_tags
+    outputs:
+      - optimized_html
+      - optimized_css
+      - performance_report
+    
+  # Step 6: Adiciona funcionalidades
+  - name: "Add Features"
+    id: "features"
+    type: "enhancement"
+    description: "Adiciona funcionalidades interativas"
+    parameters:
+      base_html: "{optimization.optimized_html}"
+      features:
+        - contact_form:
+            email: "{contact_email}"
+            fields: ["name", "email", "phone", "message"]
+        - whatsapp_button:
+            phone: "{contact_phone}"
+            message: "Olá! Vim pelo site e gostaria de mais informações"
+        - analytics:
+            google_analytics: "UA-XXXXX"
+            facebook_pixel: "XXXXX"
+        - schema_markup:
+            type: "LocalBusiness"
+            name: "{client_name}"
+        - progressive_web_app:
+            enabled: true
+    outputs:
+      - enhanced_html
+      - javascript_file
+      - manifest_json
+    
+  # Step 7: Testes de qualidade
+  - name: "Quality Tests"
+    id: "testing"
+    type: "validation"
+    description: "Executa testes de qualidade"
+    parameters:
+      url: "{features.enhanced_html}"
+      tests:
+        - html_validation:
+            w3c: true
+        - accessibility:
+            wcag_level: "AA"
+        - seo_check:
+            title_length: [30, 60]
+            meta_description: [120, 160]
+            h1_count: 1
+        - mobile_friendly:
+            viewport: true
+            responsive: true
+        - performance:
+            lighthouse_score: 90
+        - security:
+            https: true
+            csp: true
+    outputs:
+      - test_results
+      - issues_found
+      - recommendations
+    
+  # Step 8: Deploy
+  - name: "Deploy to Hosting"
+    id: "deployment"
+    type: "deployment"
+    description: "Faz deploy da landing page"
+    platform: "netlify"  # ou "vercel", "github_pages", etc
+    parameters:
+      files:
+        - "{features.enhanced_html}"
+        - "{optimization.optimized_css}"
+        - "{features.javascript_file}"
+      domain: "{client_name.toLowerCase().replace(' ', '-')}"
+      ssl: true
+      cdn: true
+      backup: true
+    outputs:
+      - live_url
+      - preview_url
+      - deployment_id
+      - ssl_certificate
+    
+  # Step 9: Configuração de domínio
+  - name: "Configure Domain"
+    id: "domain_config"
+    type: "dns_configuration"
+    description: "Configura domínio customizado"
+    optional: true
+    when: "custom_domain != null"
+    parameters:
+      domain: "{custom_domain}"
+      dns_records:
+        - type: "A"
+          value: "{deployment.ip_address}"
+        - type: "CNAME"
+          value: "{deployment.cname}"
+      ssl: true
+    outputs:
+      - domain_configured
+      - dns_propagation_status
+    
+  # Step 10: Notificação e relatório
+  - name: "Send Report"
+    id: "notification"
+    type: "notification"
+    description: "Envia relatório de conclusão"
+    channels:
+      - email:
+          to: "{contact_email}"
+          template: "landing_page_ready"
+      - whatsapp:
+          to: "{contact_phone}"
+          message: |
+            ✅ Landing page pronta!
+            
+            🔗 Link: {deployment.live_url}
+            
+            📊 Métricas:
+            - Score SEO: {testing.test_results.seo_score}/100
+            - Performance: {testing.test_results.lighthouse_score}/100
+            - Acessibilidade: {testing.test_results.accessibility_score}/100
+            
+            Entre em contato se precisar de ajustes!
+      - dashboard:
+          status: "completed"
+          project_id: "{client_name}_landing_page"
+    outputs:
+      - notification_sent
+      - report_url
+
+# ============================================================================
+# VALIDATION RULES
+# ============================================================================
+
+validation:
+  pre_execution:
+    - check: "variable.client_name != ''"
+      error: "Nome do cliente é obrigatório"
+    - check: "variable.contact_email.contains('@')"
+      error: "Email inválido"
+      
+  post_execution:
+    - check: "testing.test_results.lighthouse_score >= 80"
+      warning: "Score de performance abaixo do ideal"
+    - check: "testing.test_results.seo_score >= 90"
+      warning: "SEO pode ser melhorado"
+    - check: "deployment.ssl_certificate.valid == true"
+      error: "Certificado SSL não configurado"
+
+# ============================================================================
+# ROLLBACK PROCEDURE
+# ============================================================================
+
+rollback:
+  enabled: true
+  steps:
+    - name: "Remove Deployment"
+      when: "deployment.deployment_id != null"
+      action: "delete_deployment"
+      parameters:
+        id: "{deployment.deployment_id}"
+        
+    - name: "Clean Resources"
+      action: "cleanup"
+      parameters:
+        files: ["*.html", "*.css", "*.js"]
+        
+    - name: "Notify Rollback"
+      action: "notification"
+      message: "Landing page creation rolled back due to error"
+
+# ============================================================================
+# METRICS & REPORTING
+# ============================================================================
+
+metrics:
+  track:
+    - execution_time
+    - api_calls_count
+    - total_cost
+    - performance_scores
+    - seo_scores
+    
+  report_format: "json"
+  save_to: "reports/landing_page_{client_name}_{timestamp}.json"
+  
+  success_criteria:
+    - all_steps_completed: true
+    - no_critical_errors: true
+    - lighthouse_score: ">= 80"
+    - deployment_successful: true
+
+# ============================================================================
+# COST ESTIMATION
+# ============================================================================
+
+cost_estimate:
+  ai_generation:
+    provider: "claude"
+    estimated_tokens: 5000
+    cost: "$0.05"
+    
+  web_search:
+    api_calls: 10
+    cost: "$0.01"
+    
+  deployment:
+    platform: "netlify"
+    tier: "free"
+    cost: "$0.00"
+    
+  total_estimated: "$0.06"
+  
+# ============================================================================
+# NOTES & DOCUMENTATION
+# ============================================================================
+
+notes: |
+  Este playbook automatiza completamente a criação de uma landing page profissional.
+  
+  Recursos incluídos:
+  - SEO otimizado
+  - Design responsivo
+  - Performance otimizada
+  - Formulário de contato
+  - Integração WhatsApp
+  - Analytics
+  - PWA support
+  
+  Requisitos:
+  - API keys configuradas (Claude, SEO tools, Deployment platform)
+  - Conta no serviço de hospedagem escolhido
+  
+  Customização:
+  - Edite a seção 'variables' para adicionar mais opções
+  - Modifique os steps conforme necessário
+  - Ajuste os templates de design
+
+documentation_url: "https://prometheus.docs/playbooks/landing-page"
+support_email: "support@prometheus.ai"
