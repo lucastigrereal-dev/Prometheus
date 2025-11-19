@@ -43,6 +43,14 @@ Prometheus V3 é um sistema de automação completo que integra:
 - **Chunks inteligentes** com preservação de contexto
 - **Deduplicação** automática via hash
 
+**📊 Status da Base de Conhecimento** (atualizado 2025-11-19):
+- ✅ **6,973 chunks** salvos no ChromaDB
+- ✅ **5 arquivos** processados (Claude + GPT)
+- ✅ **426 conversas JSON** convertidas e ingeridas
+- 💰 Custo total: $1.77 (embeddings OpenAI)
+- 📈 Taxa de sucesso: 83%
+- Ver [relatório completo](RELATORIO_KNOWLEDGE_INGESTION_2025-11-19.md)
+
 #### 🔍 Supervisor Autônomo (Sprint 4)
 - **Code review automatizado** com análise estática
 - **Sistema de aprovação** com diferentes níveis de rigor
