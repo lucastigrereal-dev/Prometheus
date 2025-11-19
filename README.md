@@ -51,6 +51,21 @@ Prometheus V3 é um sistema de automação completo que integra:
 - 📈 Taxa de sucesso: 83%
 - Ver [relatório completo](RELATORIO_KNOWLEDGE_INGESTION_2025-11-19.md)
 
+#### 🛡️ File Integrity & Safe-Write Engine (v3.5 - NOVO!)
+- **File Integrity System** - Sistema imunológico de arquivos
+  - SHA-256 hashing de arquivos com chunks de 8KB
+  - Detecção automática de mutações, corrupções e deleções
+  - Audit trail completo em JSON
+  - Daemon opcional para verificação periódica
+- **Safe-Write Engine** - Escritas transacionais seguras
+  - Escritas atômicas (all-or-nothing)
+  - Backup automático antes de modificações
+  - Verificação de conteúdo após escrita
+  - Rollback automático em caso de falha
+  - Dry-run mode para testes seguros
+- ✅ **Status**: Integrado e testado (3/3 testes passando)
+- Ver [relatório de integração v3.5](RELATORIO_INTEGRACAO_V3.5_2025-11-19.md)
+
 #### 🔍 Supervisor Autônomo (Sprint 4)
 - **Code review automatizado** com análise estática
 - **Sistema de aprovação** com diferentes níveis de rigor
