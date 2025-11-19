@@ -389,11 +389,3 @@ class IntegrityHealthChecker:
         }
 
         return messages.get(status, "Unknown status")
-9️⃣ TESTES UNITÁRIOS
-📁 Estrutura de Diretórios
-prometheus/
-├── tests/
-│   ├── __init__.py
-│   ├── test_file_integrity.py
-│   ├── test_safe_write.py
-│   └── test_supervisor.py

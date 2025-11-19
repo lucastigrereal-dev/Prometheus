@@ -270,155 +270,31 @@ class IntegrityMetricsCollector:
 
         Args:
             metric_name: Nome da métrica
-            start_time: Timestamp inicial (default: últimas 24h)
-            end_time: Timestamp final (default: agora)
-            labels: Filtrar por labels
+            start_time: Timestamp inicial (opcional)
+            end_time: Timestamp final (opcional)
+            labels: Filtros de labels (opcional)
 
         Returns:
-            Lista de MetricPoint
+            Lista de pontos de métrica que atendem aos filtros
         """
-        if not self.metrics_file.exists():
-            return []
-
-        if start_time is None:
-            start_time = datetime.now() - timedelta(hours=24)
-
-        if end_time is None:
-            end_time = datetime.now()
-
         results = []
 
-        try:
-            with open(self.metrics_file, 'r', encoding='utf-8') as f:
-                for line in f:
-                    try:
-                        data = json.loads(line.strip())
-                        point = MetricPoint(**data)
+        if metric_name not in self.metrics:
+            return results
 
-                        # Filtrar por nome
-                        if point.metric_name != metric_name:
-                            continue
+        for point in self.metrics[metric_name]:
+            # Filtrar por tempo
+            if start_time and datetime.fromisoformat(point.timestamp) < start_time:
+                continue
+            if end_time and datetime.fromisoformat(point.timestamp) > end_time:
+                continue
 
-                        # Filtrar por timestamp
-                        point_time = datetime.fromisoformat(point.timestamp)
-                        if not (start_time <= point_time <= end_time):
-                            continue
+            # Filtrar por labels
+            if labels:
+                match = all(point.labels.get(k) == v for k, v in labels.items())
+                if not match:
+                    continue
 
-                        # Filtrar por labels
-                        if labels:
-                            if not all(point.labels.get(k) == v for k, v in labels.items()):
-                                continue
-
-                        results.append(point)
-
-                    except Exception as e:
-                        logger.error(f"Erro ao parsear métrica: {e}")
-                        continue
-
-        except Exception as e:
-            logger.error(f"Erro ao consultar métricas: {e}")
+            results.append(point)
 
         return results
-
-    def get_metric_stats(
-        self,
-        metric_name: str,
-        hours: int = 24
-    ) -> dict[str, float]:
-        """
-        Obtém estatísticas de métrica
-
-        Args:
-            metric_name: Nome da métrica
-            hours: Número de horas para análise
-
-        Returns:
-            Dict com min, max, avg, sum, count
-        """
-        start_time = datetime.now() - timedelta(hours=hours)
-        points = self.query_metrics(metric_name, start_time=start_time)
-
-        if not points:
-            return {
-                "min": 0.0,
-                "max": 0.0,
-                "avg": 0.0,
-                "sum": 0.0,
-                "count": 0
-            }
-
-        values = [p.value for p in points]
-
-        return {
-            "min": min(values),
-            "max": max(values),
-            "avg": sum(values) / len(values),
-            "sum": sum(values),
-            "count": len(values)
-        }
-
-    def cleanup_old_metrics(self):
-        """
-        Remove métricas antigas (baseado em retention_days)
-        """
-        if not self.metrics_file.exists():
-            return
-
-        cutoff_time = datetime.now() - timedelta(days=self.retention_days)
-        temp_file = self.metrics_file.with_suffix('.tmp')
-
-        try:
-            kept_count = 0
-            removed_count = 0
-
-            with open(self.metrics_file, 'r', encoding='utf-8') as infile:
-                with open(temp_file, 'w', encoding='utf-8') as outfile:
-                    for line in infile:
-                        try:
-                            data = json.loads(line.strip())
-                            timestamp = datetime.fromisoformat(data['timestamp'])
-
-                            if timestamp >= cutoff_time:
-                                outfile.write(line)
-                                kept_count += 1
-                            else:
-                                removed_count += 1
-
-                        except Exception as e:
-                            logger.error(f"Erro ao processar linha: {e}")
-                            outfile.write(line)  # Manter linha com erro
-
-            # Substituir arquivo original
-            temp_file.replace(self.metrics_file)
-
-            logger.info(f"Cleanup de métricas: {kept_count} mantidas, {removed_count} removidas")
-
-        except Exception as e:
-            logger.error(f"Erro no cleanup: {e}")
-            if temp_file.exists():
-                temp_file.unlink()
-
-    def get_current_counters(self) -> dict[str, float]:
-        """
-        Retorna valores atuais dos contadores
-
-        Returns:
-            Dict com contadores
-        """
-        return dict(self.counters)
-
-    def get_current_gauges(self) -> dict[str, float]:
-        """
-        Retorna valores atuais dos gauges
-
-        Returns:
-            Dict com gauges
-        """
-        return dict(self.gauges)
-
-    def reset_counters(self):
-        """
-        Reseta contadores em memória
-        """
-        self.counters.clear()
-        logger.info("Contadores resetados")

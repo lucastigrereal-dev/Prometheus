@@ -1,3 +1,4 @@
+"""
 Config Watcher
 Monitor de alterações em arquivos de configuração
 """
