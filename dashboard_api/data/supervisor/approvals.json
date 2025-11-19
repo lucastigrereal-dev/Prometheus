@@ -1,0 +1,22 @@
+{
+  "approval_task_critical_001": {
+    "approval_id": "approval_task_critical_001",
+    "task_id": "task_critical_001",
+    "task_description": "Deletar arquivos do diretório /tmp",
+    "task_action": "delete_files",
+    "task_params": {
+      "path": "/tmp",
+      "pattern": "*.log"
+    },
+    "reason": "Tarefa crítica que modifica arquivos do sistema",
+    "status": "approved",
+    "created_at": "2025-11-19T01:59:53.152573",
+    "expires_at": "2025-11-19T02:29:53.152573",
+    "timeout_minutes": 30,
+    "approved_at": "2025-11-19T01:59:57.189093",
+    "approved_by": "user",
+    "rejection_reason": null,
+    "metadata": {},
+    "approval_notes": "Aprovado após verificação manual"
+  }
+}
