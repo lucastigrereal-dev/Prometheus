@@ -1,7 +1,7 @@
 {
-  "total_chunks": 33,
+  "total_chunks": 46,
   "cache_hits": 0,
-  "cache_misses": 14,
-  "ingestions": 11,
-  "searches": 14
+  "cache_misses": 28,
+  "ingestions": 14,
+  "searches": 28
 }

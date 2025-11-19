@@ -1,0 +1,115 @@
+{
+  "df3686d8": {
+    "id": "df3686d8",
+    "action": "list_files",
+    "params": {
+      "path": "C:/Users/lucas/Downloads",
+      "max_files": 10
+    },
+    "description": "Listar últimos 10 arquivos em Downloads",
+    "critical": false,
+    "status": "completed",
+    "created_at": "2025-11-19T01:05:26.693937",
+    "started_at": "2025-11-19T01:05:28.741249",
+    "completed_at": "2025-11-19T01:05:28.749439",
+    "result": {
+      "path": "C:\\Users\\lucas\\Downloads",
+      "total_files": 10,
+      "files": [
+        {
+          "name": "10_combos_bf_2025",
+          "path": "C:\\Users\\lucas\\Downloads\\10_combos_bf_2025",
+          "is_file": true,
+          "is_dir": false,
+          "size": 19647,
+          "modified": "2025-11-14T13:19:47.289162"
+        },
+        {
+          "name": "20 Combos de Estética Facial e Corporal Imperdíveis para a Black Friday.docx",
+          "path": "C:\\Users\\lucas\\Downloads\\20 Combos de Estética Facial e Corporal Imperdíveis para a Black Friday.docx",
+          "is_file": true,
+          "is_dir": false,
+          "size": 15931,
+          "modified": "2025-11-14T13:46:18.738379"
+        },
+        {
+          "name": "20 Combos Estéticos Imperdíveis da Black Friday (Facial & Corporal).docx",
+          "path": "C:\\Users\\lucas\\Downloads\\20 Combos Estéticos Imperdíveis da Black Friday (Facial & Corporal).docx",
+          "is_file": true,
+          "is_dir": false,
+          "size": 17825,
+          "modified": "2025-11-14T13:18:43.932558"
+        },
+        {
+          "name": "2115e74475118668267641e816bf25043a128305772cb61c6a932df1687201cc-2025-11-18-17-13-05-9db7cf77266740b29f34b4e1d29c7f0c.zip",
+          "path": "C:\\Users\\lucas\\Downloads\\2115e74475118668267641e816bf25043a128305772cb61c6a932df1687201cc-2025-11-18-17-13-05-9db7cf77266740b29f34b4e1d29c7f0c.zip",
+          "is_file": true,
+          "is_dir": false,
+          "size": 257790340,
+          "modified": "2025-11-18T15:04:22.748594"
+        },
+        {
+          "name": "AdsPower-Global-7.7.18-x64.exe",
+          "path": "C:\\Users\\lucas\\Downloads\\AdsPower-Global-7.7.18-x64.exe",
+          "is_file": true,
+          "is_dir": false,
+          "size": 315213792,
+          "modified": "2025-11-13T19:34:18.654003"
+        },
+        {
+          "name": "analise_procedimentos_2024_2025.csv",
+          "path": "C:\\Users\\lucas\\Downloads\\analise_procedimentos_2024_2025.csv",
+          "is_file": true,
+          "is_dir": false,
+          "size": 725,
+          "modified": "2025-11-14T13:46:49.259083"
+        },
+        {
+          "name": "benchmark_clinicas_estetica.csv",
+          "path": "C:\\Users\\lucas\\Downloads\\benchmark_clinicas_estetica.csv",
+          "is_file": true,
+          "is_dir": false,
+          "size": 1370,
+          "modified": "2025-11-14T13:15:16.596871"
+        },
+        {
+          "name": "browser_controller.py",
+          "path": "C:\\Users\\lucas\\Downloads\\browser_controller.py",
+          "is_file": true,
+          "is_dir": false,
+          "size": 33698,
+          "modified": "2025-11-15T10:31:13.292883"
+        },
+        {
+          "name": "ChatGPT Installer.exe",
+          "path": "C:\\Users\\lucas\\Downloads\\ChatGPT Installer.exe",
+          "is_file": true,
+          "is_dir": false,
+          "size": 1106488,
+          "modified": "2025-11-14T10:17:14.948805"
+        },
+        {
+          "name": "ChromeSetup.exe",
+          "path": "C:\\Users\\lucas\\Downloads\\ChromeSetup.exe",
+          "is_file": true,
+          "is_dir": false,
+          "size": 10962360,
+          "modified": "2025-11-11T23:39:26.908954"
+        }
+      ]
+    },
+    "error": null,
+    "logs": [
+      {
+        "timestamp": "2025-11-19T01:05:28.741918",
+        "level": "info",
+        "message": "Iniciando execução de list_files"
+      },
+      {
+        "timestamp": "2025-11-19T01:05:28.750347",
+        "level": "success",
+        "message": "Execução concluída com sucesso"
+      }
+    ]
+  }
+}
