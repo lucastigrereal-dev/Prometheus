@@ -71,3 +71,35 @@ config/.env
 # Browser profiles
 browser_data/
 .playwright/
+
+# Prometheus Supreme generated files
+*.db
+runtime/*.json
+
+# Deprecated code (após consolidação 2025-11-20)
+deprecated/
+
+# Archived files
+archive/
+
+# Backups
+*.backup
+*.tar.gz
+*_backup_*.zip
+prometheus_backup_*.zip
+
+# Test artifacts
+tests/integration/*.log
+tests/validation/*.log
+.pytest_cache/
+htmlcov/
+
+# Knowledge base (ChromaDB - dados grandes)
+.chroma/
+knowledge/cleaned/*.json
+knowledge/backups/*.json
+
+# Dashboard
+prometheus-dashboard/node_modules/
+prometheus-dashboard/.next/
+prometheus-dashboard/out/

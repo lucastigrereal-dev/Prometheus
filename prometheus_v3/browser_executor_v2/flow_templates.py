@@ -345,15 +345,3 @@ if __name__ == "__main__":
     # Gerar JSON
     print("\nFlow JSON:")
     print(login_flow.to_json())
-7️⃣ PROMPTS OFICIAIS
-📁 Estrutura de Diretórios
-prometheus/
-├── prompts/
-│   ├── integrity/
-│   │   └── integrity_system_prompt.txt
-│   ├── executor/
-│   │   ├── comet_navigator_prompt.txt
-│   │   └── executor_planning_prompt.txt
-│   └── supervisor/
-│       ├── supervisor_protector_prompt.txt
-│       └── code_review_prompt.txt
